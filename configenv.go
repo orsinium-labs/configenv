@@ -17,20 +17,35 @@ type context struct {
 }
 
 func (ctx *context) pop(name string) string {
-	val := ctx.env[name]
+	val := ctx.env[ctx.prefix+name]
 	delete(ctx.env, name)
 	return val
 }
 
 type Config struct {
-	Environ    []string
+	// Pairs of name=value env vars. If not provided, [os.Environ] will be used.
+	Environ []string
+	// The prefix to add to all env var names.
+	//
+	// The prefix ensures that env vars between services don't conflict
+	Prefix string
+	// If true, will not return an error for unknown env vars with the given prefix.
+	//
+	// By default, extra env vars are forbidden which prevents typos in env var names.
+	// For example, if you write `BE_DEUG=false` instead of `BE_DEBUG=false`.
 	AllowExtra bool
+	// Require all env vars to be present and non-empty, even if not wrapped in [Required].
+	//
+	// It's a good idea to set it on the production to ensure no env var is forgotten.
 	RequireAll bool
 }
 
 func (vars Vars) Parse(cfg Config) error {
 	if cfg.Environ == nil {
 		cfg.Environ = os.Environ()
+	}
+	if cfg.Prefix == "" {
+		cfg.AllowExtra = true
 	}
 
 	env := map[string]string{}
@@ -39,7 +54,7 @@ func (vars Vars) Parse(cfg Config) error {
 		if !found {
 			return errors.New("got an env var pair without `=`")
 		}
-		key, hasPrefix := strings.CutPrefix(key, "OB_")
+		key, hasPrefix := strings.CutPrefix(key, cfg.Prefix)
 		if !hasPrefix {
 			continue
 		}
