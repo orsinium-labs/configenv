@@ -6,6 +6,16 @@ import (
 	"strings"
 )
 
+// One-letter aliases for people living on the edge.
+var (
+	R = Required
+	S = String[string]
+	I = Int[int]
+	U = Uint[uint]
+	B = Bool[bool]
+	F = Float64[float64]
+)
+
 func Required(p parser) parser {
 	return func(raw string, ctx *context) error {
 		if raw == "" {
@@ -103,7 +113,7 @@ func Uint64[T ~uint64](target *T) parser {
 	}
 }
 
-func Float32[T ~uint64](target *T) parser {
+func Float32[T ~float32](target *T) parser {
 	return func(raw string, ctx *context) error {
 		val, err := strconv.ParseFloat(raw, 32)
 		*target = T(val)
@@ -111,7 +121,7 @@ func Float32[T ~uint64](target *T) parser {
 	}
 }
 
-func Float64[T ~uint64](target *T) parser {
+func Float64[T ~float64](target *T) parser {
 	return func(raw string, ctx *context) error {
 		val, err := strconv.ParseFloat(raw, 64)
 		*target = T(val)

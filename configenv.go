@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+// One-letter aliases for people living on the edge.
+type (
+	C = Config
+	V = Vars
+)
+
 type Vars map[string]parser
 
 type parser func(string, *context) error
