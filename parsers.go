@@ -1,8 +1,10 @@
 package configenv
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -254,6 +256,53 @@ func PrefixMap[M ~map[K]V, K ~string, V any](target *M, p Parser[V]) parser {
 			delete(ctx.env, prefix+string(key))
 		}
 		*target = res
+		return nil
+	}
+}
+
+func PrefixSlice[A ~[]V, V any](target *A, p Parser[V]) parser {
+	return func(raw string, ctx *context) error {
+		prefix := ctx.name
+		type pair struct {
+			i int64
+			k string
+			v V
+		}
+		pairs := []pair{}
+		for name, val := range ctx.env {
+			rawSuffix, found := strings.CutPrefix(name, prefix)
+			if !found {
+				continue
+			}
+			index, err := strconv.ParseInt(rawSuffix, 10, 0)
+			if err != nil {
+				return fmt.Errorf(
+					"env var %s%s has invalid suffix: %v",
+					ctx.prefix, name, err,
+				)
+			}
+			ctx.name = name
+			var parsed V
+			err = p(&parsed)(val, ctx)
+			if err != nil {
+				return err
+			}
+			pairs = append(pairs, pair{
+				i: index,
+				k: name,
+				v: parsed,
+			})
+		}
+
+		slices.SortFunc(pairs, func(a, b pair) int {
+			return cmp.Compare(a.i, b.i)
+		})
+		for _, p := range pairs {
+			delete(ctx.env, p.k)
+		}
+		for _, p := range pairs {
+			*target = append(*target, p.v)
+		}
 		return nil
 	}
 }

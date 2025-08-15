@@ -156,3 +156,24 @@ func TestPrefixMap(t *testing.T) {
 	check(t, []string{"BE_XYZ_hi=13", "BE_XYZ_mark=14"}, map[string]int{"hi": 13, "mark": 14})
 	// check(t, []string{"BE_XYZ_=14"}, map[string]int{"": 14})
 }
+
+func TestPrefixSlice(t *testing.T) {
+	check := func(t *testing.T, env []string, exp []int) {
+		var act []int
+		vars := configenv.Vars{"XYZ_": configenv.PrefixSlice(&act, configenv.Int)}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if !slices.Equal(act, exp) {
+			t.Fatalf("got %v, want %v", act, exp)
+		}
+	}
+
+	check(t, []string{}, []int{})
+	check(t, []string{"BE_XYZ_1=13"}, []int{13})
+	check(t, []string{"BE_XYZ_1=13", "BE_XYZ_2=14"}, []int{13, 14})
+	check(t, []string{"BE_XYZ_2=14", "BE_XYZ_1=13"}, []int{13, 14})
+	check(t, []string{"BE_XYZ_7=13", "BE_XYZ_19=14"}, []int{13, 14})
+	check(t, []string{"BE_XYZ_7=14", "BE_XYZ_19=12"}, []int{14, 12})
+}
