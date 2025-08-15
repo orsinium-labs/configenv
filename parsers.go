@@ -1,6 +1,7 @@
 package configenv
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -149,5 +150,11 @@ func Strings[T ~[]string](target *T, sep string) parser {
 		parts := strings.Split(raw, sep)
 		*target = T(parts)
 		return nil
+	}
+}
+
+func JSON[T any](target *T) parser {
+	return func(raw string, ctx *context) error {
+		return json.Unmarshal([]byte(raw), target)
 	}
 }
