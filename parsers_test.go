@@ -2,6 +2,7 @@
 package configenv_test
 
 import (
+	"maps"
 	"slices"
 	"testing"
 
@@ -135,4 +136,23 @@ func TestJSON(t *testing.T) {
 	check(t, "[1,2,4]", []int{1, 2, 4})
 	check(t, "[  1, 2 , 4 ] ", []int{1, 2, 4})
 	check(t, "[-1,-2,-4,0]", []int{-1, -2, -4, 0})
+}
+
+func TestPrefixMap(t *testing.T) {
+	check := func(t *testing.T, env []string, exp map[string]int) {
+		var act map[string]int
+		vars := configenv.Vars{"XYZ_": configenv.PrefixMap(&act, configenv.Int)}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if !maps.Equal(act, exp) {
+			t.Fatalf("got %v, want %v", act, exp)
+		}
+	}
+
+	check(t, []string{}, map[string]int{})
+	check(t, []string{"BE_XYZ_HI=13"}, map[string]int{"HI": 13})
+	check(t, []string{"BE_XYZ_hi=13", "BE_XYZ_mark=14"}, map[string]int{"hi": 13, "mark": 14})
+	// check(t, []string{"BE_XYZ_=14"}, map[string]int{"": 14})
 }

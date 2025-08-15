@@ -232,3 +232,28 @@ func JSON[T any](target *T) parser {
 		return json.Unmarshal([]byte(raw), target)
 	}
 }
+
+func PrefixMap[M ~map[K]V, K ~string, V any](target *M, p Parser[V]) parser {
+	return func(raw string, ctx *context) error {
+		prefix := ctx.name
+		res := make(M, 0)
+		for name, val := range ctx.env {
+			suffix, found := strings.CutPrefix(name, prefix)
+			if !found {
+				continue
+			}
+			ctx.name = name
+			var parsed V
+			err := p(&parsed)(val, ctx)
+			if err != nil {
+				return err
+			}
+			res[K(suffix)] = parsed
+		}
+		for key := range res {
+			delete(ctx.env, prefix+string(key))
+		}
+		*target = res
+		return nil
+	}
+}
