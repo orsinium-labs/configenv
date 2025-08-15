@@ -28,6 +28,9 @@ var (
 func Required(p parser) parser {
 	return func(raw string, ctx *context) error {
 		if raw == "" {
+			return nil
+		}
+		if raw == "" {
 			return fmt.Errorf("required but not found")
 		}
 		return p(raw, ctx)
@@ -44,6 +47,9 @@ func Map(p parser, f func(string) string) parser {
 
 func Int[T ~int](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseInt(raw, 10, 0)
 		*target = T(val)
 		return err
@@ -52,6 +58,9 @@ func Int[T ~int](target *T) parser {
 
 func Int8[T ~int8](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseInt(raw, 10, 8)
 		*target = T(val)
 		return err
@@ -60,6 +69,9 @@ func Int8[T ~int8](target *T) parser {
 
 func Int16[T ~int16](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseInt(raw, 10, 16)
 		*target = T(val)
 		return err
@@ -68,6 +80,9 @@ func Int16[T ~int16](target *T) parser {
 
 func Int32[T ~int32](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseInt(raw, 10, 32)
 		*target = T(val)
 		return err
@@ -76,6 +91,9 @@ func Int32[T ~int32](target *T) parser {
 
 func Int64[T ~int64](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseInt(raw, 10, 64)
 		*target = T(val)
 		return err
@@ -84,6 +102,9 @@ func Int64[T ~int64](target *T) parser {
 
 func Uint[T ~uint](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseUint(raw, 10, 0)
 		*target = T(val)
 		return err
@@ -92,6 +113,9 @@ func Uint[T ~uint](target *T) parser {
 
 func Uint8[T ~uint8](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseUint(raw, 10, 8)
 		*target = T(val)
 		return err
@@ -100,6 +124,9 @@ func Uint8[T ~uint8](target *T) parser {
 
 func Uint16[T ~uint16](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseUint(raw, 10, 16)
 		*target = T(val)
 		return err
@@ -108,6 +135,9 @@ func Uint16[T ~uint16](target *T) parser {
 
 func Uint32[T ~uint32](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseUint(raw, 10, 32)
 		*target = T(val)
 		return err
@@ -116,6 +146,9 @@ func Uint32[T ~uint32](target *T) parser {
 
 func Uint64[T ~uint64](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseUint(raw, 10, 64)
 		*target = T(val)
 		return err
@@ -124,6 +157,9 @@ func Uint64[T ~uint64](target *T) parser {
 
 func Float32[T ~float32](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseFloat(raw, 32)
 		*target = T(val)
 		return err
@@ -132,6 +168,9 @@ func Float32[T ~float32](target *T) parser {
 
 func Float64[T ~float64](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseFloat(raw, 64)
 		*target = T(val)
 		return err
@@ -140,6 +179,9 @@ func Float64[T ~float64](target *T) parser {
 
 func Bool[T ~bool](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		val, err := strconv.ParseBool(raw)
 		*target = T(val)
 		return err
@@ -155,7 +197,10 @@ func String[T ~string](target *T) parser {
 
 func Strings[A ~[]V, V ~string](target *A, sep string) parser {
 	return func(raw string, ctx *context) error {
-		for _, part := range strings.Split(raw, sep) {
+		if raw == "" {
+			return nil
+		}
+		for part := range strings.SplitSeq(raw, sep) {
 			*target = append(*target, V(part))
 		}
 		return nil
@@ -164,7 +209,10 @@ func Strings[A ~[]V, V ~string](target *A, sep string) parser {
 
 func Slice[A ~[]V, V any](target *A, sep string, p Parser[V]) parser {
 	return func(raw string, ctx *context) error {
-		for _, part := range strings.Split(raw, sep) {
+		if raw == "" {
+			return nil
+		}
+		for part := range strings.SplitSeq(raw, sep) {
 			var parsed V
 			err := p(&parsed)(part, ctx)
 			if err != nil {
@@ -178,6 +226,9 @@ func Slice[A ~[]V, V any](target *A, sep string, p Parser[V]) parser {
 
 func JSON[T any](target *T) parser {
 	return func(raw string, ctx *context) error {
+		if raw == "" {
+			return nil
+		}
 		return json.Unmarshal([]byte(raw), target)
 	}
 }

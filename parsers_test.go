@@ -18,7 +18,7 @@ func TestBool(t *testing.T) {
 			t.Fatalf("parse error: %v", err)
 		}
 		if act != exp {
-			t.Fatalf("want %v, got %v", act, exp)
+			t.Fatalf("got %v, want %v", act, exp)
 		}
 	}
 
@@ -44,7 +44,7 @@ func TestInt(t *testing.T) {
 			t.Fatalf("parse error: %v", err)
 		}
 		if act != exp {
-			t.Fatalf("want %v, got %v", act, exp)
+			t.Fatalf("got %v, want %v", act, exp)
 		}
 	}
 
@@ -65,7 +65,7 @@ func TestString(t *testing.T) {
 			t.Fatalf("parse error: %v", err)
 		}
 		if act != exp {
-			t.Fatalf("want %v, got %v", act, exp)
+			t.Fatalf("got %v, want %v", act, exp)
 		}
 	}
 
@@ -85,7 +85,7 @@ func TestStrings(t *testing.T) {
 			t.Fatalf("parse error: %v", err)
 		}
 		if !slices.Equal(act, exp) {
-			t.Fatalf("want %v, got %v", act, exp)
+			t.Fatalf("got %v, want %v", act, exp)
 		}
 	}
 
@@ -107,7 +107,7 @@ func TestSlice(t *testing.T) {
 			t.Fatalf("parse error: %v", err)
 		}
 		if !slices.Equal(act, exp) {
-			t.Fatalf("want %v, got %v", act, exp)
+			t.Fatalf("got %v, want %v", act, exp)
 		}
 	}
 
@@ -126,7 +126,7 @@ func TestJSON(t *testing.T) {
 			t.Fatalf("parse error: %v", err)
 		}
 		if !slices.Equal(act, exp) {
-			t.Fatalf("want %v, got %v", act, exp)
+			t.Fatalf("got %v, want %v", act, exp)
 		}
 	}
 
