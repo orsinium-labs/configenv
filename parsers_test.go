@@ -97,6 +97,25 @@ func TestStrings(t *testing.T) {
 	check(t, "hello, world", []string{"hello", " world"})
 }
 
+func TestSlice(t *testing.T) {
+	check := func(t *testing.T, val string, exp []int) {
+		env := []string{"BE_XYZ=" + val}
+		var act []int
+		vars := configenv.Vars{"XYZ": configenv.Slice(&act, ",", configenv.Int)}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if !slices.Equal(act, exp) {
+			t.Fatalf("want %v, got %v", act, exp)
+		}
+	}
+
+	check(t, "", []int{})
+	check(t, "1", []int{1})
+	check(t, "1,2,5", []int{1, 2, 5})
+}
+
 func TestJSON(t *testing.T) {
 	check := func(t *testing.T, val string, exp []int) {
 		env := []string{"BE_XYZ=" + val}

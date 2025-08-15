@@ -17,6 +17,14 @@ var (
 	F = Float64[float64]
 )
 
+type Parser[T any] func(*T) parser
+
+var (
+	_ Parser[bool]   = Bool
+	_ Parser[int]    = Int
+	_ Parser[string] = String
+)
+
 func Required(p parser) parser {
 	return func(raw string, ctx *context) error {
 		if raw == "" {
@@ -149,6 +157,20 @@ func Strings[A ~[]V, V ~string](target *A, sep string) parser {
 	return func(raw string, ctx *context) error {
 		for _, part := range strings.Split(raw, sep) {
 			*target = append(*target, V(part))
+		}
+		return nil
+	}
+}
+
+func Slice[A ~[]V, V any](target *A, sep string, p Parser[V]) parser {
+	return func(raw string, ctx *context) error {
+		for _, part := range strings.Split(raw, sep) {
+			var parsed V
+			err := p(&parsed)(part, ctx)
+			if err != nil {
+				return err
+			}
+			*target = append(*target, parsed)
 		}
 		return nil
 	}

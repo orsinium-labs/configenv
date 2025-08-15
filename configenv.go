@@ -20,6 +20,7 @@ type parser func(string, *context) error
 type context struct {
 	env    map[string]string
 	prefix string
+	name   string
 }
 
 func (ctx *context) pop(name string) string {
@@ -68,6 +69,7 @@ func (vars Vars) Parse(cfg Config) error {
 	}
 	ctx := context{env: env}
 	for name, parse := range vars {
+		ctx.name = name
 		raw := ctx.pop(name)
 		if raw == "" {
 			if cfg.RequireAll {
