@@ -20,10 +20,11 @@ type parser func(string, *context) error
 type context struct {
 	env    map[string]string
 	prefix string
+	name   string
 }
 
 func (ctx *context) pop(name string) string {
-	val := ctx.env[ctx.prefix+name]
+	val := ctx.env[name]
 	delete(ctx.env, name)
 	return val
 }
@@ -66,17 +67,15 @@ func (vars Vars) Parse(cfg Config) error {
 		}
 		env[key] = value
 	}
-	ctx := context{env: env}
+	ctx := context{env: env, prefix: cfg.Prefix}
 	for name, parse := range vars {
+		ctx.name = name
 		raw := ctx.pop(name)
-		if raw == "" {
-			if cfg.RequireAll {
-				return fmt.Errorf(
-					"parse %s%s: required but not found",
-					ctx.prefix, name,
-				)
-			}
-			continue
+		if raw == "" && cfg.RequireAll {
+			return fmt.Errorf(
+				"parse %s%s: required but not found",
+				ctx.prefix, name,
+			)
 		}
 		err := parse(raw, &ctx)
 		if err != nil {
@@ -85,7 +84,7 @@ func (vars Vars) Parse(cfg Config) error {
 	}
 	if !cfg.AllowExtra {
 		for key := range ctx.env {
-			return fmt.Errorf("unsupported env var: %s", key)
+			return fmt.Errorf("unsupported env var: %s%s", ctx.prefix, key)
 		}
 	}
 	return nil

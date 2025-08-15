@@ -1,0 +1,179 @@
+//nolint:nilness
+package configenv_test
+
+import (
+	"maps"
+	"slices"
+	"testing"
+
+	"github.com/orsinium-labs/configenv"
+)
+
+func TestBool(t *testing.T) {
+	check := func(t *testing.T, val string, exp bool) {
+		env := []string{"BE_XYZ=" + val}
+		var act bool
+		vars := configenv.Vars{"XYZ": configenv.Bool(&act)}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if act != exp {
+			t.Fatalf("got %v, want %v", act, exp)
+		}
+	}
+
+	check(t, "true", true)
+	check(t, "True", true)
+	check(t, "TRUE", true)
+	check(t, "1", true)
+
+	check(t, "false", false)
+	check(t, "False", false)
+	check(t, "FALSE", false)
+	check(t, "0", false)
+	check(t, "", false)
+}
+
+func TestInt(t *testing.T) {
+	check := func(t *testing.T, val string, exp int) {
+		env := []string{"BE_XYZ=" + val}
+		var act int
+		vars := configenv.Vars{"XYZ": configenv.Int(&act)}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if act != exp {
+			t.Fatalf("got %v, want %v", act, exp)
+		}
+	}
+
+	check(t, "", 0)
+	check(t, "1", 1)
+	check(t, "13", 13)
+	check(t, "-13", -13)
+	check(t, "-0", 0)
+}
+
+func TestString(t *testing.T) {
+	check := func(t *testing.T, val string, exp string) {
+		env := []string{"BE_XYZ=" + val}
+		var act string
+		vars := configenv.Vars{"XYZ": configenv.String(&act)}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if act != exp {
+			t.Fatalf("got %v, want %v", act, exp)
+		}
+	}
+
+	check(t, "", "")
+	check(t, "hi", "hi")
+	check(t, "hello world!", "hello world!")
+	check(t, "don't", "don't")
+}
+
+func TestStrings(t *testing.T) {
+	check := func(t *testing.T, val string, exp []string) {
+		env := []string{"BE_XYZ=" + val}
+		var act []string
+		vars := configenv.Vars{"XYZ": configenv.Strings(&act, ",")}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if !slices.Equal(act, exp) {
+			t.Fatalf("got %v, want %v", act, exp)
+		}
+	}
+
+	check(t, "", []string{})
+	check(t, "h", []string{"h"})
+	check(t, "hello", []string{"hello"})
+	check(t, "hello world", []string{"hello world"})
+	check(t, "hello,world", []string{"hello", "world"})
+	check(t, "hello, world", []string{"hello", " world"})
+}
+
+func TestSlice(t *testing.T) {
+	check := func(t *testing.T, val string, exp []int) {
+		env := []string{"BE_XYZ=" + val}
+		var act []int
+		vars := configenv.Vars{"XYZ": configenv.Slice(&act, ",", configenv.Int)}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if !slices.Equal(act, exp) {
+			t.Fatalf("got %v, want %v", act, exp)
+		}
+	}
+
+	check(t, "", []int{})
+	check(t, "1", []int{1})
+	check(t, "1,2,5", []int{1, 2, 5})
+}
+
+func TestJSON(t *testing.T) {
+	check := func(t *testing.T, val string, exp []int) {
+		env := []string{"BE_XYZ=" + val}
+		var act []int
+		vars := configenv.Vars{"XYZ": configenv.JSON(&act)}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if !slices.Equal(act, exp) {
+			t.Fatalf("got %v, want %v", act, exp)
+		}
+	}
+
+	check(t, "[]", []int{})
+	check(t, "[1]", []int{1})
+	check(t, "[1,2,4]", []int{1, 2, 4})
+	check(t, "[  1, 2 , 4 ] ", []int{1, 2, 4})
+	check(t, "[-1,-2,-4,0]", []int{-1, -2, -4, 0})
+}
+
+func TestPrefixMap(t *testing.T) {
+	check := func(t *testing.T, env []string, exp map[string]int) {
+		var act map[string]int
+		vars := configenv.Vars{"XYZ_": configenv.PrefixMap(&act, configenv.Int)}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if !maps.Equal(act, exp) {
+			t.Fatalf("got %v, want %v", act, exp)
+		}
+	}
+
+	check(t, []string{}, map[string]int{})
+	check(t, []string{"BE_XYZ_HI=13"}, map[string]int{"HI": 13})
+	check(t, []string{"BE_XYZ_hi=13", "BE_XYZ_mark=14"}, map[string]int{"hi": 13, "mark": 14})
+	// check(t, []string{"BE_XYZ_=14"}, map[string]int{"": 14})
+}
+
+func TestPrefixSlice(t *testing.T) {
+	check := func(t *testing.T, env []string, exp []int) {
+		var act []int
+		vars := configenv.Vars{"XYZ_": configenv.PrefixSlice(&act, configenv.Int)}
+		err := vars.Parse(configenv.Config{Environ: env, Prefix: "BE_"})
+		if err != nil {
+			t.Fatalf("parse error: %v", err)
+		}
+		if !slices.Equal(act, exp) {
+			t.Fatalf("got %v, want %v", act, exp)
+		}
+	}
+
+	check(t, []string{}, []int{})
+	check(t, []string{"BE_XYZ_1=13"}, []int{13})
+	check(t, []string{"BE_XYZ_1=13", "BE_XYZ_2=14"}, []int{13, 14})
+	check(t, []string{"BE_XYZ_2=14", "BE_XYZ_1=13"}, []int{13, 14})
+	check(t, []string{"BE_XYZ_7=13", "BE_XYZ_19=14"}, []int{13, 14})
+	check(t, []string{"BE_XYZ_7=14", "BE_XYZ_19=12"}, []int{14, 12})
+}
