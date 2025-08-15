@@ -145,10 +145,11 @@ func String[T ~string](target *T) parser {
 	}
 }
 
-func Strings[T ~[]string](target *T, sep string) parser {
+func Strings[A ~[]V, V ~string](target *A, sep string) parser {
 	return func(raw string, ctx *context) error {
-		parts := strings.Split(raw, sep)
-		*target = T(parts)
+		for _, part := range strings.Split(raw, sep) {
+			*target = append(*target, V(part))
+		}
 		return nil
 	}
 }
